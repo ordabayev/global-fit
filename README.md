@@ -3,7 +3,7 @@
 Requirements:
 python 3.6, numpy, matplotlib, lmfit
 
-Download globalfit.py, laplace.py and data.csv
+Download globalfit.py, laplace.py and data.csv\
 Save your data in csv file in the same directory with globalfit.py and laplace.py.
 File 'data.csv' is given as an example (UvrD translocation on ssDNA with 7 different lengths).
 

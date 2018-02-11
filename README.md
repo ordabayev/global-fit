@@ -10,7 +10,7 @@ File 'data.csv' is given as an example (UvrD translocation on ssDNA with 7 diffe
 Open Anaconda prompt and navigate to the directory containing globalfit.py\
 Open python console (in Anaconda prompt type "jupyter console")\
 Type and run:\
-from globalfit import *\
+from globalfit import *<br>
 
 To create a new fitting model type:\
 yourmodel = GlobalFit()\

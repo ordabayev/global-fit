@@ -1,4 +1,3 @@
-# exec(open('script.py').read())
 import numpy as np
 import matplotlib
 matplotlib.use('tkagg')

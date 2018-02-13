@@ -3,22 +3,20 @@
 Requirements:
 python 3.6, numpy, matplotlib, lmfit
 
-Download globalfit.py, laplace.py and data.csv\
-Save your data in csv file in the same directory with globalfit.py and laplace.py.\
-File 'data.csv' is given as an example (UvrD translocation on ssDNA with 7 different lengths).\
+Download and save globalfit.py, laplace.py and data.csv files in your working directory. File 'data.csv' is given as an example (UvrD translocation on ssDNA with 7 different lengths). Save your own data in csv file in the working directory.
 
-Open Anaconda prompt and navigate to the directory containing globalfit.py\
-Open python console (in Anaconda prompt type "jupyter console")\
-Type and run:\
-from globalfit import *<br>
+Open python console in the working directory. Import globalfit.py using:
+`<from globalfit import *>`
 
-To create a new fitting model type:\
-yourmodel = GlobalFit()\
-At the prompt type "twostepdiss"\
-Next type at the prompt type "kt, kd, kc, kend, r, C"\
-Load data:\
-yourmodel.data()\
-Type "data.csv" and enter\
-Initialize parameters using:\
-yourmodel.initialize()\
-yourmodel.fit()\
+Start fitting model:
+`<mymodel = GlobalFit()>`
+Plot the data:
+`<mymodel.plot()>`
+Fit the data:
+`<mymodel.fit()>`
+Print parameters:
+`<mymodel.params()>`
+Update parameters:
+`<mymodel.update()>`
+Save fit parameters into a file:
+`<mymodel.save()>`

@@ -12,13 +12,18 @@ Open python console in the working directory. Import globalfit.py running:
 
 Start fitting model:
 >`mymodel = GlobalFit()`
+
 Plot the data:
 >`mymodel.plot()`
+
 Fit the data:
 >`mymodel.fit()`
+
 Print parameters:
 >`mymodel.params()`
+
 Update parameters:
 >`mymodel.update()`
+
 Save fit parameters into a file:
 >`mymodel.save()`

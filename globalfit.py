@@ -12,12 +12,12 @@ import time
 import inspect
 
 def help():
-    print('Start fitting model: mymodel = GlobalFit()')
-    print('Print parameters: mymodel.params()')
+    print('Create a fitting model: mymodel = GlobalFit()')
+    print('Print model parameters: mymodel.params()')
     print('Plot the data: mymodel.plot()')
     print('Fit the data: mymodel.fit()')
-    print('Update parameters: mymodel.update()')
-    print('Save: mymodel.save()')
+    print('Update model parameters: mymodel.update()')
+    print('Save model parameters: mymodel.save()')
 
 
 def doc():
@@ -79,7 +79,7 @@ class GlobalFit(object):
         self.set_global()
         self.initialize()
         self.simulate()
-        self.plot(plot_sim=True)
+        self.plot()
 
     def load_data(self, data='data.csv'):
         print('')

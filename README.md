@@ -9,10 +9,10 @@ Requirements: python 3.6, numpy, matplotlib, lmfit. To install these modules in 
 
 Download and save globalfit.py, laplace.py and data.csv files in your working directory. File 'data.csv' is given as an example (UvrD translocation on ssDNA with 7 different lengths). Save your own data in csv file in the working directory.
 
-Open python console in the working directory. Import globalfit.py running:
+Open python console in the working directory. Import globalfit.py by running:
 >`from globalfit import *`
 
-Start fitting model:
+Create a fitting model:
 >`mymodel = GlobalFit()`
 
 Plot the data:
@@ -21,11 +21,11 @@ Plot the data:
 Fit the data:
 >`mymodel.fit()`
 
-Print parameters:
+Print model parameters:
 >`mymodel.params()`
 
-Update parameters:
+Update model parameters with fit parameters:
 >`mymodel.update()`
 
-Save fit parameters into a file:
+Save model parameters into a file:
 >`mymodel.save()`

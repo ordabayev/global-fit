@@ -1,23 +1,24 @@
 import numpy as np
 import matplotlib
-matplotlib.use('tkagg')
 import matplotlib.pyplot as plt
-from matplotlib.widgets import TextBox
+if not plt.get_backend():
+    matplotlib.use('tkagg')
+#from matplotlib.widgets import TextBox
 #from matplotlib.widgets import Button
 #%matplotlib inline
-#print(plt.get_backend())
 import lmfit
 from laplace import Talbot
 import time
 import inspect
 
 def help():
-    print('Creat model: mymodel = GlobalFit()')
-    print('Load data: mymodel.data()')
-    print('Initialize parameters: mymodel.initialize()')
-    print('Fit data: mymodel.fit()')
-    print('Update parameters: mymodel.write()')
-    print('Plot data: mymodel.plot(plot_sim=True)')
+    print('Start fitting model: mymodel = GlobalFit()')
+    print('Print parameters: mymodel.params()')
+    print('Plot the data: mymodel.plot()')
+    print('Fit the data: mymodel.fit()')
+    print('Update parameters: mymodel.update()')
+    print('Save: mymodel.save()')
+
 
 def doc():
     print('class GlobalFit(models_list=models)')
@@ -45,6 +46,11 @@ def twostepdiss(s, A, n, kt, kd, kc, kend, r, C):
     return A/(1+n*r) * (1/(s+kc) * (1+kt*r/(s+kd)*(1-(kt/(s+kt+kd))**n))*(1+C*kc/(s+kend))) 
 models['twostepdiss'] = twostepdiss
 
+def BCDtrans(s, A, nt, nu, kt, ku, kend):
+    return A*(kt**(nt))*(ku**(nu))/((s+kt)**(nt)*(s+ku)**(nu)*(s+kend))
+    #return A*(kt**(L/mt))*(ku**(L/mu))/((s+kt)**(L/mt)*(s+ku)**(L/mu)*(s+kend))
+models['BCDtrans'] = BCDtrans
+
 ### UNWINDING MODELS ###
 def nstep(s, n, k, A):
     return A * k**n / (s * (k + s)**n)
@@ -67,11 +73,32 @@ class GlobalFit(object):
     """
     Comments here
     """
-    def __init__(self, models_list=models):
+    def __init__(self, data='data.csv', model='twostepdiss', models_list=models):
+        self.load_data(data=data)
+        self.select_model(model=model)
+        self.set_global()
+        self.initialize()
+        self.simulate()
+        self.plot(plot_sim=True)
+
+    def load_data(self, data='data.csv'):
+        print('')
+        print('Load your data from a csv file.')
+        print('Order of columns must be: time, y1, y2, ...')
+        data_input = input('Data filename [default={}]: '.format(data))
+        if data_input: data = data_input
+        self.filename = data.split('.')[0]
+        ty = np.loadtxt(data, dtype='float', delimiter=',')
+        self.t = ty[:,0]
+        self.y = ty[:,1:]
+        self.N = self.y.shape[1]
+
+    def select_model(self, model='twostepdiss', models_list=models):
+        print('')
+        print('Select a model to fit your data.')
         print('List of all available models:')
         for m in models_list:
             print(m)
-        model = 'nstep' # default model
         model_input = input('Type the name of your model [default={}]: '.format(model))
         if model_input: model = model_input
         self.model = models_list[model]
@@ -80,70 +107,60 @@ class GlobalFit(object):
         self.params_list.append('b')
         self.global_params = []
         self.fixed_params = []
-        self.set_global()
-    
-    def data(self, data='data.csv'):
-        data_input = input('Data filename [default={}]: '.format(data))
-        if data_input: data = data_input
-        self.filename = data.split('.')[0]
-        data = np.loadtxt(data, dtype='float', delimiter=',')
-        self.t = data[:,0]
-        self.y = data[:,1:]
-        self.N = self.y.shape[1]
-    
-    def plot(self, plot_sim=False):
-        plt.cla()
-        plt.plot(self.t, self.y, 'o')
-        if plot_sim:
-            plt.plot(self.t_sim, self.y_sim, 'k-', lw=1)
-        plt.pause(0.01)
-    
-    def initialize(self):
-        self.init_params = lmfit.Parameters()
-        for p in self.params_list:
-            for i in range(self.N):
-                self.init_params.add('{}_{}'.format(p, i+1), value=1)
-        for p in self.global_params:
-            for i in range(1,self.N):
-                self.init_params['{}_{}'.format(p,i+1)].expr = '{}_1'.format(p)
-        self.simulate()
-        self.open_figure()
-        self.tune_params()
-    
-    def submit(self, txt):
-        for p in self.params_list:
-            if p in self.global_params:
-                self.init_params['{}_{}'.format(p,1)].set(value=float(self.text_box[p].text))
-            else:
-                for i in range(self.N):
-                    self.init_params['{}_{}'.format(p,i+1)].set(value=float(self.text_box[p].text))
-        self.simulate()
-        self.tune_params()
-    
-    def open_figure(self):
-        self.fig, self.ax = plt.subplots()
-        self.axbox, self.text_box = {}, {}
         
-    def tune_params(self):
-        plt.subplots_adjust(bottom=0.2)
-        self.ax.clear()
-        self.ax.plot(self.t, self.y)
-        self.ax.plot(self.t_sim, self.y_sim, 'k-', lw=1)
-    
-        count = 1
-        for p in self.params_list:
-            self.axbox[p] = plt.axes([0.1*count, 0.075, 0.075, 0.075])
-            self.axbox[p].clear()
-            self.text_box[p] = TextBox(self.axbox[p], p, initial=str(self.init_params['{}_1'.format(p)].value))
-            self.text_box[p].on_submit(self.submit)
-            count += 1
-        plt.pause(0.01)
-    
     def set_global(self):
         print('')
         print('List of parameters for the selected model: {}'.format(self.params_list))
         params_input = input('Type global parameters comma separated: ')
         if params_input: self.global_params = [p.strip() for p in params_input.split(',')]
+        
+    def plot(self, plot_sim=True):
+        plt.cla()
+        plt.plot(self.t, self.y, 'o')
+        if plot_sim:
+            plt.plot(self.t_sim, self.y_sim, 'k-', lw=1.5)
+        plt.pause(0.01)
+        
+    def params(self):
+        self.init_params.pretty_print()
+    
+    def initialize(self):
+        self.init_params = lmfit.Parameters()
+        for p in self.params_list:
+            if p in self.global_params:
+                param = 0
+                param_input = input('{} [default={}]: '.format(p, param))
+                if param_input: param = float(param_input)
+                self.init_params.add('{}_{}'.format(p, 1), value=param)
+                for i in range(1,self.N):
+                    self.init_params.add('{}_{}'.format(p, i+1), expr='{}_1'.format(p))
+            else:
+                for i in range(self.N):
+                    param = 0
+                    param_input = input('{}_{} [default={}]: '.format(p, i+1, param))
+                    if param_input: param = float(param_input)
+                    self.init_params.add('{}_{}'.format(p, i+1), value=param)
+        self.simulate()
+        self.plot()
+                    
+    
+    def set_params(self):
+        for p in self.params_list:
+            if p in self.global_params:
+                param = self.init_params['{}_{}'.format(p, 1)].value
+                param_input = input('{} [default={}]: '.format(p, param))
+                if param_input: param = float(param_input)
+                self.init_params.add('{}_{}'.format(p, 1), value=param)
+                for i in range(1,self.N):
+                    self.init_params.add('{}_{}'.format(p, i+1), expr='{}_1'.format(p))
+            else:
+                for i in range(self.N):
+                    param = self.init_params['{}_{}'.format(p, i+1)].value
+                    param_input = input('{}_{} [default={}]: '.format(p, i+1, param))
+                    if param_input: param = float(param_input)
+                    self.init_params.add('{}_{}'.format(p, i+1), value=param)
+        self.simulate()
+        self.plot()
         
     
     def set_fixed(self):
@@ -192,7 +209,7 @@ class GlobalFit(object):
                 else: b = params['{}_{}'.format(p, i+1)].value
             params_tuple = tuple(p_list)
             F = lambda s: self.model(s, *params_tuple)
-            self.y_sim[:,i] = Talbot(F,self.t_sim,N=24) + b
+            self.y_sim[:,i] = Talbot(F,self.t_sim,N=50) + b
         return self.y_sim
     
     def residuals(self, params):
@@ -204,24 +221,31 @@ class GlobalFit(object):
         if (it % 10) == 0:
             self.plot(plot_sim=True)
     
-    def fit(self):
+    def fit(self, live=False):
         self.set_fixed()
         t1 = time.time()
-        self.result = lmfit.minimize(self.residuals, self.init_params, iter_cb=self.iteration)
+        if live:
+            self.result = lmfit.minimize(self.residuals, self.init_params, iter_cb=self.iteration)
+        else:
+            self.result = lmfit.minimize(self.residuals, self.init_params)
         t2 = time.time()
         dt = t2 - t1
         self.result.time = dt
-        print('{} ({:.2f} seconds)'.format(self.result.message, self.result.time))
         self.result.params.pretty_print()
+        print('{} ({:.2f} seconds)'.format(self.result.message, self.result.time))
+        print('Chi-square_{}'.format(self.result.chisqr))
+        self.plot()
         return self.result
     
-    def write(self):
+    def update(self):
         self.init_params = self.result.params
     
     def read_params(self):
         fj = open('{}.json'.format(self.filename), 'r')
         self.init_params.load(fj)
         fj.close()
+        self.simulate()
+        self.plot()
     
     def save(self):
         fj = open('{}.json'.format(self.filename), 'w+')

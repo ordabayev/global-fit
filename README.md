@@ -39,11 +39,17 @@ Fit the data:
 Overwrite model parameter values with parameter values obtained from the fit:
 >`my_model.write()`
 
+Read parameters from params.gss file:
+>`my_model.read()`
+
 Plot data and simulation curves:
+>`my_model.plot()`
+
+Fit report (fit values, std errors, correlations):
 >`my_model.plot()`
 
 Save model parameters, simulation curves, and residuals into a file:
 >`my_model.save()`
 
 Perform Markov-Chain Monte-Carlo simulations to obtain Bayesian sampling of the posterior distribution:
->`my_model.mcmc()`
+>`my_model.emcee()`

@@ -46,7 +46,7 @@ Plot data and simulation curves:
 >`my_model.plot()`
 
 Fit report (fit values, std errors, correlations):
->`my_model.plot()`
+>`my_model.report()`
 
 Save model parameters, simulation curves, and residuals into a file:
 >`my_model.save()`

@@ -53,3 +53,7 @@ Save model parameters, simulation curves, and residuals into a file:
 
 Perform Markov-Chain Monte-Carlo simulations to obtain Bayesian sampling of the posterior distribution:
 >`my_model.emcee()`
+
+Tutorials:
+* [Example1](https://github.com/ordabayev/global-fit/blob/master/example1.ipynb): simple n-step unwinding model.
+* [Example2](https://github.com/ordabayev/global-fit/blob/master/example2.ipynb): n-step translocation with two-step dissociation. Here I also compare globalfit to Conlin program.
